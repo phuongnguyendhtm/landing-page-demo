@@ -1,0 +1,41 @@
+{
+  "name": "freeup-content-machine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "node -e \"const fs=require('fs'); if(!fs.existsSync('.env')) { fs.copyFileSync('.env.example','.env'); console.log('✅ Da tao file .env tu dong.'); }\" && cd scripts/reels_engine && npm install",
+    "postinstall": "npm run setup",
+    "reels": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/reels_engine.js",
+    "image": "node scripts/image_engine.js",
+    "carousel": "node scripts/carousel_engine.js",
+    "infographic": "node scripts/html_infographic_engine.js",
+    "broll": "node scripts/html_broll_engine.js",
+    "publish": "node scripts/publish_engine_pw.js",
+    "chat": "node scripts/local_server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@remotion/eslint-config-flat": "^4.0.440",
+    "apify-client": "^2.22.3",
+    "axios": "^1.15.0",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "ffmpeg-static": "^5.3.0",
+    "playwright": "^1.58.2",
+    "puppeteer": "^24.40.0",
+    "sqlite3": "^6.0.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
+  }
+}

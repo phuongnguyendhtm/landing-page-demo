@@ -1,0 +1,29 @@
+functionsDirectory = "D:\\FreeUp Content Machine\\netlify\\functions"
+functionsDirectoryOrigin = "config-v1"
+plugins = []
+headers = []
+redirects = []
+
+[build]
+publish = "D:\\FreeUp Content Machine\\landing-page"
+publishOrigin = "config"
+functions = "D:\\FreeUp Content Machine\\netlify\\functions"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[functions]
+
+[functions."*"]
+included_files = ["brain.db"]

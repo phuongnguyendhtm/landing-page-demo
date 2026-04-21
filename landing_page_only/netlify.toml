@@ -1,0 +1,6 @@
+[build]
+  publish = "landing-page"
+  functions = "netlify/functions"
+
+[functions]
+  included_files = ["brain.db"]

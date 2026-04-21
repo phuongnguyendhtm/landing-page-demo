@@ -1,0 +1,31 @@
+node_modules/
+.DS_Store
+.env
+browser_data/
+
+media_output/**
+!media_output/**/
+!media_output/**/.gitkeep
+!media_output/.gitkeep
+
+# media-input is now tracked as per user request
+# media-input/**
+# !media-input/**/
+# !media-input/**/.gitkeep
+# !media-input/.gitkeep
+
+*.log
+debug_*.txt
+error*.txt
+draft_*.txt
+draft_*.html
+# Database & Private Data
+database/*.json
+!database/brand_config.json
+!database/my_accounts.json
+database/history/
+database/scraped_temp/
+
+# Browser & Sessions
+browser_data/
+scripts/tmp_render/

@@ -1,0 +1,21 @@
+{
+  "founder": "Nguyễn Thị Việt Phương",
+  "brand_identity": {
+    "handle": "@FreeUp",
+    "colors": {
+      "accent": "#00A86B"
+    },
+    "fonts": {
+      "primary": "Inter",
+      "accent": "Playfair Display"
+    },
+    "visual_vibe": "Cinematic lighting, high contrast, dark mode, sharp focus, professional and luxurious mood. Color palette predominantly dark.",
+    "watermark": {
+      "enabled": false,
+      "text": "FreeUp",
+      "logo_url": "file:///path/to/logo.png",
+      "bottom_margin": "20px",
+      "opacity": 0.5
+    }
+  }
+}
