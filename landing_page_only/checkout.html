@@ -262,113 +262,94 @@
     </div>
 
     <script>
-        // --- DATABASE MOCKUP / API INTERACTION ---
-        // In real use, these would be your real Bank info
+        // ── CẤU HÌNH NGÂN HÀNG ────────────────────────────────────────────────
         const BANK_INFO = {
-            acc: '0823688866', // THAY BẰNG STK CỦA BẠN
-            bank: 'MBBank',    // THAY BẰNG TÊN NGÂN HÀNG
+            acc:  '0823688866',            // ← THAY BẰNG SỐ TÀI KHOẢN NGÂN HÀNG THẬT
+            bank: 'MBBank',               // ← THAY BẰNG TÊN NGÂN HÀNG (MBBank, Vietcombank...)
             name: 'NGUYEN THI VIET PHUONG'
         };
 
-        let orderId = null;
-        let products = [];
+        // ── SẢN PHẨM ──────────────────────────────────────────────────────────
+        const PRODUCTS = [
+            { id: 1, name: 'Workshop 3 Ngày: Giải Mã Hệ Thống Tự Động Chốt Đơn', price: 299000, stock_quantity: 50 },
+            { id: 2, name: 'Combo Workshop + Coaching 1-1 (30 phút)',              price: 599000, stock_quantity: 10 },
+        ];
 
-        // Load products from API
-        async function loadProducts() {
-            try {
-                const res = await fetch('/.netlify/functions/admin/products');
-                products = await res.json();
-                const select = document.getElementById('product-id');
-                select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
-                products.forEach(p => {
-                    if (p.stock_quantity > 0) {
-                        select.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.name} (${p.price.toLocaleString()}đ)</option>`;
-                    }
-                });
-            } catch (err) {
-                console.error('Failed to load products');
-            }
+        const ORDER_PREFIX  = 'FU';  // Giữ tổng ≤ 10 ký tự để ngân hàng không cắt
+        let orderId         = null;
+        let pollingInterval = null;
+
+        function loadProducts() {
+            const select = document.getElementById('product-id');
+            select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+            PRODUCTS.forEach(p => {
+                if (p.stock_quantity > 0) {
+                    select.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.name} (${p.price.toLocaleString()}đ)</option>`;
+                }
+            });
         }
 
-        // Handle Form Submit
         document.getElementById('checkout-form').onsubmit = async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const productId = document.getElementById('product-id').value;
-            const product = products.find(p => p.id == productId);
+            const btn     = e.target.querySelector('button[type="submit"]');
+            btn.disabled  = true;
+            btn.innerText = 'Đang xử lý...';
 
-            if (!product) return alert('Vui lòng chọn sản phẩm');
-            const BANK_INFO = {
-                acc: '0823688866', // 
-                bank: 'MBBank',    //
-                name: 'NGUYEN THI VIET PHUONG'
-            };
+            const name      = document.getElementById('name').value.trim();
+            const phone     = document.getElementById('phone').value.trim();
+            const productId = parseInt(document.getElementById('product-id').value);
+            const product   = PRODUCTS.find(p => p.id === productId);
 
-            // 1. Create Customer (Optional step or just link)
-            // 2. Create Order
+            if (!product) {
+                btn.disabled = false;
+                btn.innerText = 'TIẾN HÀNH THANH TOÁN';
+                return alert('Vui lòng chọn sản phẩm');
+            }
+
+            orderId = ORDER_PREFIX + Math.floor(1000 + Math.random() * 9000);
+
             try {
-                // First, ensure customer in DB (simple version: just create order with name)
-                // For a better CRM, you'd find/create customer first.
-                // Let's create customer first.
-                const cRes = await fetch('/.netlify/functions/admin/customers', {
-                    method: 'POST',
-                    body: JSON.stringify({ name, phone, zalo: phone })
+                const res = await fetch('/api/orders', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ orderId, name, phone, product: product.name, amount: product.price })
                 });
-                const customer = await cRes.json();
-
-                const oRes = await fetch('/.netlify/functions/admin/orders', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        customer_id: customer.id,
-                        product_id: productId,
-                        amount: product.price,
-                        status: 'pending'
-                    })
-                });
-                const order = await oRes.json();
-                orderId = order.id;
-
+                if (!res.ok) throw new Error('Server error ' + res.status);
                 showQR(product.price, orderId);
             } catch (err) {
-                alert('Lỗi khởi tạo đơn hàng: ' + err.message);
+                alert('Không thể tạo đơn hàng. Vui lòng thử lại.\n' + err.message);
+                btn.disabled  = false;
+                btn.innerText = 'TIẾN HÀNH THANH TOÁN';
             }
         };
 
         function showQR(amount, id) {
             document.getElementById('form-section').style.display = 'none';
-            document.getElementById('qr-section').style.display = 'block';
+            document.getElementById('qr-section').style.display   = 'block';
 
-            const content = `DH${id}`;
-            const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.acc}&bank=${BANK_INFO.bank}&amount=${amount}&des=${content}`;
+            const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.acc}&bank=${BANK_INFO.bank}&amount=${amount}&des=${id}`;
+            document.getElementById('qr-container').innerHTML    = `<img src="${qrUrl}" alt="QR Thanh toán" style="max-width:240px;">`;
+            document.getElementById('display-amount').innerText  = amount.toLocaleString() + 'đ';
+            document.getElementById('display-content').innerText = id;
 
-            document.getElementById('qr-container').innerHTML = `<img src="${qrUrl}" alt="SePay QR Code">`;
-            document.getElementById('display-amount').innerText = amount.toLocaleString() + 'đ';
-            document.getElementById('display-content').innerText = content;
-
-            // Start polling for status
-            startPolling();
+            startPolling(id);
         }
 
-        async function startPolling() {
-            const interval = setInterval(async () => {
+        function startPolling(id) {
+            pollingInterval = setInterval(async () => {
                 try {
-                    const res = await fetch('/.netlify/functions/admin/orders');
-                    const orders = await res.json();
-                    const currentOrder = orders.find(o => o.id == orderId);
-
-                    if (currentOrder && currentOrder.status === 'success') {
-                        clearInterval(interval);
+                    const res   = await fetch(`/api/orders/${id}`);
+                    const order = await res.json();
+                    if (order.status === 'success') {
+                        clearInterval(pollingInterval);
                         showSuccess();
                     }
-                } catch (err) {
-                    console.error('Polling error');
-                }
-            }, 3000); // Poll every 3 seconds
+                } catch (_) {}
+            }, 3000);
         }
 
         function showSuccess() {
-            document.getElementById('qr-section').style.display = 'none';
+            document.getElementById('qr-section').style.display    = 'none';
             document.getElementById('success-section').style.display = 'block';
         }
 
