@@ -7,6 +7,8 @@
     "doc": "docs"
   },
   "scripts": {
+    "dev": "npx http-server landing_page_only -p 3000 -o --cors",
+    "build": "node -e \"const fs=require('fs'),path=require('path'); const src='landing_page_only',dist='dist'; if(fs.existsSync(dist)) fs.rmSync(dist,{recursive:true}); fs.cpSync(src,dist,{recursive:true}); console.log('✅ Build xong! Output: dist/');\" ",
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup": "node -e \"const fs=require('fs'); if(!fs.existsSync('.env')) { fs.copyFileSync('.env.example','.env'); console.log('✅ Da tao file .env tu dong.'); }\" && cd scripts/reels_engine && npm install",
     "postinstall": "npm run setup",

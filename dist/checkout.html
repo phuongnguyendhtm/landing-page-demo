@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - FreeUp Academy</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --navy: #0A192F;
+            --navy-light: #112240;
+            --teal: #10B981;
+            --teal-dark: #059669;
+            --teal-light: rgba(16, 185, 129, 0.1);
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--navy);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .checkout-card {
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 30px;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--teal);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-pay {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            background: var(--teal);
+            color: #000;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .btn-pay:hover {
+            background: var(--teal-dark);
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px var(--teal-light);
+        }
+
+        #qr-section {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .qr-code {
+            background: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .qr-code img {
+            width: 250px;
+            height: 250px;
+        }
+
+        .payment-info {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-row strong {
+            color: var(--teal);
+        }
+
+        #status-waiting {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .loader {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--teal);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #success-section {
+            display: none;
+            text-align: center;
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="checkout-card">
+        <!-- STEP 1: FORM -->
+        <div id="form-section">
+            <h1 class="logo">Xác nhận Đơn hàng</h1>
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <input type="text" id="name" required placeholder="Nguyễn Văn A">
+                </div>
+                <div class="form-group">
+                    <label>Số điện thoại / Zalo</label>
+                    <input type="tel" id="phone" required placeholder="090...">
+                </div>
+                <div class="form-group">
+                    <label>Chọn sản phẩm</label>
+                    <select id="product-id" required>
+                        <option value=""> Đang tải sản phẩm...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-pay">TIẾP TỤC THANH TOÁN</button>
+            </form>
+        </div>
+
+        <!-- STEP 2: QR CODE -->
+        <div id="qr-section">
+            <h1>Quét mã để Thanh toán</h1>
+            <p style="font-size: 14px; color: var(--text-muted);">Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống
+                tự động xác nhận đơn hàng trong 30 giây.</p>
+
+            <div class="qr-code" id="qr-container">
+                <!-- QR Image will be here -->
+            </div>
+
+            <div class="payment-info">
+                <div class="info-row"><span>Số tiền:</span><strong id="display-amount">0đ</strong></div>
+                <div class="info-row"><span>Nội dung:</span><strong id="display-content">DH...</strong></div>
+            </div>
+
+            <div id="status-waiting">
+                <div class="loader"></div>
+                <span>Đang chờ bạn quét mã...</span>
+            </div>
+        </div>
+
+        <!-- STEP 3: SUCCESS -->
+        <div id="success-section">
+            <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+            <h1 style="color: var(--teal);">Thanh toán Thành công!</h1>
+            <p>Cảm ơn sếp đã tin tưởng. Đơn hàng của sếp đã được hệ thống ghi nhận. Team FreeUp sẽ liên hệ ngay!</p>
+            <button class="btn-pay" onclick="location.href='/'" style="margin-top: 30px;">QUAY LẠI TRANG CHỦ</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATABASE MOCKUP / API INTERACTION ---
+        // In real use, these would be your real Bank info
+        const BANK_INFO = {
+            acc: '0823688866', // THAY BẰNG STK CỦA BẠN
+            bank: 'MBBank',    // THAY BẰNG TÊN NGÂN HÀNG
+            name: 'NGUYEN THI VIET PHUONG'
+        };
+
+        let orderId = null;
+        let products = [];
+
+        // Load products from API
+        async function loadProducts() {
+            try {
+                const res = await fetch('/.netlify/functions/admin/products');
+                products = await res.json();
+                const select = document.getElementById('product-id');
+                select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+                products.forEach(p => {
+                    if (p.stock_quantity > 0) {
+                        select.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.name} (${p.price.toLocaleString()}đ)</option>`;
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to load products');
+            }
+        }
+
+        // Handle Form Submit
+        document.getElementById('checkout-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const productId = document.getElementById('product-id').value;
+            const product = products.find(p => p.id == productId);
+
+            if (!product) return alert('Vui lòng chọn sản phẩm');
+            const BANK_INFO = {
+                acc: '0823688866', // 
+                bank: 'MBBank',    //
+                name: 'NGUYEN THI VIET PHUONG'
+            };
+
+            // 1. Create Customer (Optional step or just link)
+            // 2. Create Order
+            try {
+                // First, ensure customer in DB (simple version: just create order with name)
+                // For a better CRM, you'd find/create customer first.
+                // Let's create customer first.
+                const cRes = await fetch('/.netlify/functions/admin/customers', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, phone, zalo: phone })
+                });
+                const customer = await cRes.json();
+
+                const oRes = await fetch('/.netlify/functions/admin/orders', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        customer_id: customer.id,
+                        product_id: productId,
+                        amount: product.price,
+                        status: 'pending'
+                    })
+                });
+                const order = await oRes.json();
+                orderId = order.id;
+
+                showQR(product.price, orderId);
+            } catch (err) {
+                alert('Lỗi khởi tạo đơn hàng: ' + err.message);
+            }
+        };
+
+        function showQR(amount, id) {
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('qr-section').style.display = 'block';
+
+            const content = `DH${id}`;
+            const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.acc}&bank=${BANK_INFO.bank}&amount=${amount}&des=${content}`;
+
+            document.getElementById('qr-container').innerHTML = `<img src="${qrUrl}" alt="SePay QR Code">`;
+            document.getElementById('display-amount').innerText = amount.toLocaleString() + 'đ';
+            document.getElementById('display-content').innerText = content;
+
+            // Start polling for status
+            startPolling();
+        }
+
+        async function startPolling() {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch('/.netlify/functions/admin/orders');
+                    const orders = await res.json();
+                    const currentOrder = orders.find(o => o.id == orderId);
+
+                    if (currentOrder && currentOrder.status === 'success') {
+                        clearInterval(interval);
+                        showSuccess();
+                    }
+                } catch (err) {
+                    console.error('Polling error');
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+
+        function showSuccess() {
+            document.getElementById('qr-section').style.display = 'none';
+            document.getElementById('success-section').style.display = 'block';
+        }
+
+        window.onload = loadProducts;
+    </script>
+</body>
+
+</html>
