@@ -46,7 +46,7 @@
 
             <p class="gold-text" style="font-weight: 700; margin-bottom: 30px; letter-spacing: 1px;">"ĐÂY KHÔNG PHẢI LÀ
                 MỘT KHÓA HỌC LÝ THUYẾT SUÔNG. ĐÂY LÀ BẢN ĐỒ THỰC THI."</p>
-            <button class="btn btn-primary open-modal-btn">ĐĂNG KÝ THAM GIA NGAY - 299K</button>
+            <button class="btn btn-primary open-payment-btn">ĐĂNG KÝ THAM GIA NGAY - 299K</button>
             <p style="margin-top: 15px; font-size: 0.8rem; color: var(--text-muted);">Số lượng giới hạn 50 người để đảm
                 bảo chất lượng coaching</p>
         </div>
@@ -192,7 +192,7 @@
             <div style="font-size: 5rem; font-weight: 900; margin: 20px 0;" class="gradient-text">299.000 VNĐ</div>
             <p style="text-decoration: line-through; color: var(--text-muted); font-size: 1.5rem; margin-bottom: 40px;">
                 Giá gốc: 499.000 VNĐ</p>
-            <button class="btn btn-primary open-modal-btn"
+            <button class="btn btn-primary open-payment-btn"
                 style="background: #fff; color: #000; padding: 25px 80px; font-size: 1.1rem;">ĐĂNG KÝ GIỮ CHỖ
                 NGAY</button>
             <div class="mt-40">
@@ -263,13 +263,22 @@
                     SAU.</span></h1>
             <p style="margin-bottom: 40px; color: var(--text-muted);">Sở hữu tư duy và công cụ để xây dựng cỗ máy bán
                 hàng tự động 24/7.</p>
-            <button class="btn btn-primary open-modal-btn" style="padding: 25px 60px;">ĐĂNG KÝ THAM GIA NGAY -
+            <button class="btn btn-primary open-payment-btn" style="padding: 25px 60px;">ĐĂNG KÝ THAM GIA NGAY -
                 299K</button>
             <div style="margin-top: 80px; opacity: 0.5;">
                 <p>&copy; 2026 FreeUp Academy. Designed for High-Impact Growth.</p>
             </div>
         </div>
     </footer>
+
+
+    <!-- PAYMENT MODAL (checkout embedded) -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content" style="padding:0; max-width:520px; height:88vh; overflow:hidden; position:relative; background:#0A192F; border:1px solid rgba(16,185,129,0.3);">
+            <button class="close-payment-modal" style="position:absolute;top:12px;right:16px;color:#fff;font-size:2rem;background:none;border:none;cursor:pointer;z-index:10;">&times;</button>
+            <iframe src="checkout.html" style="width:100%;height:100%;border:none;" title="Thanh toán"></iframe>
+        </div>
+    </div>
 
     <!-- QUALIFICATION MODAL -->
     <div id="qualifyModal" class="modal-overlay">
@@ -328,85 +337,107 @@
     </div>
 
     <script>
-        // Init Lucide
-        lucide.init();
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // Accordion Logic
-        const accHeaders = document.querySelectorAll('.acc-header');
-        accHeaders.forEach(header => {
+        // ── Lucide icons ─────────────────────────────────────────────────────
+        try { lucide.createIcons(); } catch(e) { console.warn('Lucide CDN not loaded', e); }
+
+        // ── Accordion ────────────────────────────────────────────────────────
+        document.querySelectorAll('.acc-header').forEach(header => {
             header.addEventListener('click', () => {
                 const item = header.parentElement;
                 const isOpened = item.classList.contains('opened');
-
-                // Close all others
                 document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('opened'));
-
-                if (!isOpened) {
-                    item.classList.add('opened');
-                }
+                if (!isOpened) item.classList.add('opened');
             });
         });
 
-        // Modal Logic
-        const modal = document.getElementById('qualifyModal');
-        const openBtns = document.querySelectorAll('.open-modal-btn');
-        const closeBtn = document.querySelector('.close-modal');
-
-        openBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modal.classList.add('active');
-            });
-        });
-
-        closeBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-        });
-
-        window.onclick = (event) => {
-            if (event.target == modal) {
-                modal.classList.remove('active');
-            }
-        };
-
-        // Form Submit — gửi data lên Formspree
-        document.getElementById('qualification-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            const errMsg = document.getElementById('form-error');
-            btn.disabled = true;
-            btn.innerText = 'Đang gửi...';
-            errMsg.style.display = 'none';
-
-            const formData = new FormData(e.target);
-            try {
-                const res = await fetch(e.target.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (res.ok) {
-                    document.getElementById('form-state').style.display = 'none';
-                    document.getElementById('success-state').style.display = 'block';
-                    // Tự động mở Zalo sau 2 giây
-                    setTimeout(() => window.open('https://zalo.me/0823688866', '_blank'), 2000);
-                } else {
-                    throw new Error();
-                }
-            } catch {
-                btn.disabled = false;
-                btn.innerText = 'HOÀN TẤT & NHẬN LINK NHÓM ZALO';
-                errMsg.style.display = 'block';
-            }
-        });
-        // Reset form state khi đóng modal
-        document.querySelector('.close-modal').addEventListener('click', () => {
+        // ── Helpers ──────────────────────────────────────────────────────────
+        function resetZaloModal() {
             setTimeout(() => {
-                document.getElementById('form-state').style.display = 'block';
-                document.getElementById('success-state').style.display = 'none';
-                document.getElementById('qualification-form').reset();
+                const formState = document.getElementById('form-state');
+                const successState = document.getElementById('success-state');
+                const form = document.getElementById('qualification-form');
+                const btn = document.getElementById('submit-btn');
+                const errMsg = document.getElementById('form-error');
+                if (formState) formState.style.display = 'block';
+                if (successState) successState.style.display = 'none';
+                if (form) form.reset();
+                if (btn) { btn.disabled = false; btn.innerText = 'HOÀN TẤT & NHẬN LINK NHÓM ZALO'; }
+                if (errMsg) errMsg.style.display = 'none';
             }, 300);
+        }
+
+        // ── Modal Zalo (open-modal-btn) ───────────────────────────────────────
+        const zaloModal = document.getElementById('qualifyModal');
+        const closeZaloBtn = document.querySelector('.close-modal');
+
+        document.querySelectorAll('.open-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => zaloModal.classList.add('active'));
         });
+
+        if (closeZaloBtn) {
+            closeZaloBtn.addEventListener('click', () => {
+                zaloModal.classList.remove('active');
+                resetZaloModal();
+            });
+        }
+
+        // ── Modal Thanh Toán (open-payment-btn) ──────────────────────────────
+        const paymentModal = document.getElementById('paymentModal');
+        const closePaymentBtn = document.querySelector('.close-payment-modal');
+
+        document.querySelectorAll('.open-payment-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (paymentModal) paymentModal.classList.add('active');
+            });
+        });
+
+        if (closePaymentBtn) {
+            closePaymentBtn.addEventListener('click', () => paymentModal.classList.remove('active'));
+        }
+
+        // Đóng khi click ra ngoài
+        window.addEventListener('click', (e) => {
+            if (e.target === zaloModal) { zaloModal.classList.remove('active'); resetZaloModal(); }
+            if (paymentModal && e.target === paymentModal) paymentModal.classList.remove('active');
+        });
+
+        // ── Form Formspree ────────────────────────────────────────────────────
+        const qualForm = document.getElementById('qualification-form');
+        if (qualForm) {
+            qualForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('submit-btn');
+                const errMsg = document.getElementById('form-error');
+                btn.disabled = true;
+                btn.innerText = 'Đang gửi...';
+                errMsg.style.display = 'none';
+
+                try {
+                    const res = await fetch(e.target.action, {
+                        method: 'POST',
+                        body: new FormData(e.target),
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res.ok) {
+                        document.getElementById('form-state').style.display = 'none';
+                        document.getElementById('success-state').style.display = 'block';
+                        setTimeout(() => window.open('https://zalo.me/0823688866', '_blank'), 2000);
+                    } else {
+                        throw new Error();
+                    }
+                } catch {
+                    btn.disabled = false;
+                    btn.innerText = 'HOÀN TẤT & NHẬN LINK NHÓM ZALO';
+                    errMsg.style.display = 'block';
+                }
+            });
+        }
+
+        }); // end DOMContentLoaded
     </script>
+
     <!-- CHATBOT TOGGLE -->
     <div id="chatbot-container">
         <button id="chatbot-toggle">

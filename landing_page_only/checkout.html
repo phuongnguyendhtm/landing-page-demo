@@ -276,6 +276,11 @@
         ];
 
         const ORDER_PREFIX  = 'FU';  // Giữ tổng ≤ 10 ký tự để ngân hàng không cắt
+
+        // Tự động phát hiện môi trường: local dùng port 3001, production dùng /api
+        const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:3001'
+            : '';
         let orderId         = null;
         let pollingInterval = null;
 
@@ -309,7 +314,7 @@
             orderId = ORDER_PREFIX + Math.floor(1000 + Math.random() * 9000);
 
             try {
-                const res = await fetch('/api/orders', {
+                const res = await fetch(`${API_BASE}/api/orders`, {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({ orderId, name, phone, product: product.name, amount: product.price })
@@ -338,7 +343,7 @@
         function startPolling(id) {
             pollingInterval = setInterval(async () => {
                 try {
-                    const res   = await fetch(`/api/orders/${id}`);
+                    const res   = await fetch(`${API_BASE}/api/orders/${id}`);
                     const order = await res.json();
                     if (order.status === 'success') {
                         clearInterval(pollingInterval);
