@@ -264,24 +264,24 @@
     <script>
         // ── CẤU HÌNH NGÂN HÀNG ────────────────────────────────────────────────
         const BANK_INFO = {
-            acc:  '0823688866',            // ← THAY BẰNG SỐ TÀI KHOẢN NGÂN HÀNG THẬT
-            bank: 'MBBank',               // ← THAY BẰNG TÊN NGÂN HÀNG (MBBank, Vietcombank...)
+            acc: '0030100065507004',            // ← THAY BẰNG SỐ TÀI KHOẢN NGÂN HÀNG THẬT
+            bank: 'OCB',               // ← THAY BẰNG TÊN NGÂN HÀNG (MBBank, Vietcombank...)
             name: 'NGUYEN THI VIET PHUONG'
         };
 
         // ── SẢN PHẨM ──────────────────────────────────────────────────────────
         const PRODUCTS = [
             { id: 1, name: 'Workshop 3 Ngày: Giải Mã Hệ Thống Tự Động Chốt Đơn', price: 299000, stock_quantity: 50 },
-            { id: 2, name: 'Combo Workshop + Coaching 1-1 (30 phút)',              price: 599000, stock_quantity: 10 },
+            { id: 2, name: 'Combo Workshop + Coaching 1-1 (30 phút)', price: 599000, stock_quantity: 10 },
         ];
 
-        const ORDER_PREFIX  = 'FU';  // Giữ tổng ≤ 10 ký tự để ngân hàng không cắt
+        const ORDER_PREFIX = 'FU';  // Giữ tổng ≤ 10 ký tự để ngân hàng không cắt
 
         // Tự động phát hiện môi trường: local dùng port 3001, production dùng /api
         const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
             ? 'http://localhost:3002'
             : '';
-        let orderId         = null;
+        let orderId = null;
         let pollingInterval = null;
 
         function loadProducts() {
@@ -296,14 +296,14 @@
 
         document.getElementById('checkout-form').onsubmit = async (e) => {
             e.preventDefault();
-            const btn     = e.target.querySelector('button[type="submit"]');
-            btn.disabled  = true;
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
             btn.innerText = 'Đang xử lý...';
 
-            const name      = document.getElementById('name').value.trim();
-            const phone     = document.getElementById('phone').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             const productId = parseInt(document.getElementById('product-id').value);
-            const product   = PRODUCTS.find(p => p.id === productId);
+            const product = PRODUCTS.find(p => p.id === productId);
 
             if (!product) {
                 btn.disabled = false;
@@ -315,26 +315,26 @@
 
             try {
                 const res = await fetch(`${API_BASE}/api/orders`, {
-                    method:  'POST',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ orderId, name, phone, product: product.name, amount: product.price })
+                    body: JSON.stringify({ orderId, name, phone, product: product.name, amount: product.price })
                 });
                 if (!res.ok) throw new Error('Server error ' + res.status);
                 showQR(product.price, orderId);
             } catch (err) {
                 alert('Không thể tạo đơn hàng. Vui lòng thử lại.\n' + err.message);
-                btn.disabled  = false;
+                btn.disabled = false;
                 btn.innerText = 'TIẾN HÀNH THANH TOÁN';
             }
         };
 
         function showQR(amount, id) {
             document.getElementById('form-section').style.display = 'none';
-            document.getElementById('qr-section').style.display   = 'block';
+            document.getElementById('qr-section').style.display = 'block';
 
             const qrUrl = `https://qr.sepay.vn/img?acc=${BANK_INFO.acc}&bank=${BANK_INFO.bank}&amount=${amount}&des=${id}`;
-            document.getElementById('qr-container').innerHTML    = `<img src="${qrUrl}" alt="QR Thanh toán" style="max-width:240px;">`;
-            document.getElementById('display-amount').innerText  = amount.toLocaleString() + 'đ';
+            document.getElementById('qr-container').innerHTML = `<img src="${qrUrl}" alt="QR Thanh toán" style="max-width:240px;">`;
+            document.getElementById('display-amount').innerText = amount.toLocaleString() + 'đ';
             document.getElementById('display-content').innerText = id;
 
             startPolling(id);
@@ -343,18 +343,18 @@
         function startPolling(id) {
             pollingInterval = setInterval(async () => {
                 try {
-                    const res   = await fetch(`${API_BASE}/api/orders/${id}`);
+                    const res = await fetch(`${API_BASE}/api/orders/${id}`);
                     const order = await res.json();
                     if (order.status === 'success') {
                         clearInterval(pollingInterval);
                         showSuccess();
                     }
-                } catch (_) {}
+                } catch (_) { }
             }, 3000);
         }
 
         function showSuccess() {
-            document.getElementById('qr-section').style.display    = 'none';
+            document.getElementById('qr-section').style.display = 'none';
             document.getElementById('success-section').style.display = 'block';
         }
 
